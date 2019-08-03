@@ -1,0 +1,158 @@
+{
+    "name": "ros-debug",
+    "displayName": "ros-debug",
+    "description": "ROS debugging support",
+    "version": "0.0.1",
+    "publisher": "g-arjones",
+    "license": "SEE LICENSE IN LICENSE.txt",
+    "icon": "images/icon.png",
+    "author": {
+        "name": "Gabriel Arjones"
+    },
+    "contributors": [
+        {
+            "name": "Gabriel Arjones",
+            "email": "arjones@arjones.com"
+        }
+    ],
+    "galleryBanner": {
+        "color": "#458ccc",
+        "theme": "dark"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/g-arjones/vscode-ros-debug.git"
+    },
+    "engines": {
+        "vscode": "^1.31.0"
+    },
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./out/src/extension",
+    "categories": [
+        "Other"
+    ],
+    "keywords": [
+        "ROS",
+        "robotics",
+        "debug",
+        "debugging",
+        "roslaunch"
+    ],
+    "contributes": {
+        "debuggers": [
+            {
+                "type": "roslaunch",
+                "label": "Roslaunch",
+                "configurationAttributes": {
+                    "launch": {
+                        "required": [
+                            "node",
+                            "launchFile"
+                        ],
+                        "properties": {
+                            "node": {
+                                "type": "string",
+                                "description": "Name of the node within the launch file to debug"
+                            },
+                            "launchFile": {
+                                "type": "string",
+                                "description": "Absolute path to the roslaunch file"
+                            },
+                            "cwd": {
+                                "type": "string",
+                                "description": "Working directory"
+                            },
+                            "stopAtEntry": {
+                                "type": "boolean",
+                                "description": "Whether GDB should break when entering the program"
+                            },
+                            "externalConsole": {
+                                "type": "boolean",
+                                "description": "Whether the program should get its own console or be redirected to the main debug console"
+                            },
+                            "environment": {
+                                "type": "array",
+                                "description": "Environment variables that should be set as { \"name\": \"name_of_var\", \"value\": \"value_of_var\" }"
+                            },
+                            "setupCommands": {
+                                "type": "array",
+                                "description": "One or more GDB/LLDB commands to execute in order to setup the underlying debugger. Example: \"setupCommands\": [ { \"text\": \"-enable-pretty-printing\", \"description\": \"Enable GDB pretty printing\", \"ignoreFailures\": true }].",
+                                "items": {
+                                    "type": "object",
+                                    "default": {},
+                                    "properties": {
+                                        "text": {
+                                            "type": "string",
+                                            "description": "The debugger command to execute.",
+                                            "default": ""
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "description": "Optional description for the command.",
+                                            "default": ""
+                                        },
+                                        "ignoreFailures": {
+                                            "type": "boolean",
+                                            "description": "If true, failures from the command should be ignored. Default value is false.",
+                                            "default": false
+                                        }
+                                    }
+                                },
+                                "default": []
+                            },
+                            "MIMode": {
+                                "type": "string",
+                                "description": "Debugger mode"
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "languages": [
+            {
+                "id": "xml",
+                "extensions": [
+                    ".launch",
+                    ".test"
+                ]
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test",
+        "lint": "node ./node_modules/tslint/bin/tslint --project ."
+    },
+    "extensionDependencies": [
+        "ms-vscode.cpptools"
+    ],
+    "dependencies": {},
+    "devDependencies": {
+        "@types/js-yaml": "^3.12.0",
+        "@types/node": "^7.10.3",
+        "fs-temp": "latest",
+        "decache": "^4.5.1",
+        "del": "^3.0.0",
+        "gulp": "^3.9.1",
+        "gulp-coveralls": "^0.1.4",
+        "gulp-json-editor": "^2.2.2",
+        "istanbul": "^0.4.5",
+        "remap-istanbul": "^0.12.0",
+        "run-sequence": "^2.2.1",
+        "should": "latest",
+        "tslint": "^5.11.0",
+        "tslint-clean-code": "^0.2.7",
+        "tslint-consistent-codestyle": "^1.13.3",
+        "tslint-eslint-rules": "^5.4.0",
+        "tslint-microsoft-contrib": "^5.2.1",
+        "typemoq": "latest",
+        "typescript": "latest",
+        "vscode": "^1.1.30"
+    }
+}
