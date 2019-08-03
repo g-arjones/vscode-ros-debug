@@ -19,4 +19,4 @@ script:
   - npm run lint
   - gulp cover:enable
   - npm run test
-  - gulp cover:publish
+  - npm run coveralls

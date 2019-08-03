@@ -3,7 +3,6 @@ var path = require('path');
 var runSequence = require('run-sequence');
 var del = require('del');
 var jeditor = require("gulp-json-editor");
-var coveralls = require('gulp-coveralls');
 
 gulp.task('clean', function(callback) {
     runSequence('cover:clean', 'out:clean', callback);
@@ -29,11 +28,6 @@ gulp.task('cover:disable', () => {
             return json; // must return JSON object.
         }))
         .pipe(gulp.dest("./", {'overwrite':true}));
-});
-
-gulp.task('cover:publish', function(callback) {
-    return gulp.src('coverage/lcov.info')
-        .pipe(coveralls());
 });
 
 gulp.task('out:clean', function(callback) {
