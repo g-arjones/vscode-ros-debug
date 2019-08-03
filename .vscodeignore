@@ -10,3 +10,5 @@ coverconfig.json
 coverage/**
 test/**
 typings/**
+gulpfile.js
+tslint.json
