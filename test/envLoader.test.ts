@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import * as ros from "../src/ros";
+import * as ros from "../src/envLoader";
 import * as helpers from "./helpers";
 
 const envData = "\

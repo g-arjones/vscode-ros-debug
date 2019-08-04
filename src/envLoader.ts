@@ -32,7 +32,7 @@ export interface IEnvLoader {
     reload(): Promise<any>;
 }
 
-export class EnvLoader {
+export class EnvLoader implements IEnvLoader {
     private _cachedEnv: any;
     constructor(private _workspaceFolder: string) {
         this.reload();
