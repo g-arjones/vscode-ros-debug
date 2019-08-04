@@ -1,15 +1,38 @@
 "use strict";
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
+import * as debug from "./debug";
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export function activate(extensionContext: vscode.ExtensionContext) {
-  // Extension loaded
+class RoslaunchDebugAdapterTracker implements vscode.DebugAdapterTracker {
+    private _terminal: vscode.Terminal;
+    constructor(private _config: { cmd: string, env: any }) {
+        // no-op
+    }
+    public onWillStartSession(): void {
+        this._terminal = vscode.window.createTerminal({
+            env: this._config.env,
+            name: "roslaunch",
+        });
+        this._terminal.sendText(this._config.cmd);
+    }
+    public onWillStopSession(): void {
+        this._terminal.dispose();
+    }
 }
 
-// this method is called when your extension is deactivated
+export function activate(extensionContext: vscode.ExtensionContext) {
+    const roslaunchDebugProvider = new debug.RoslaunchConfigurationProvider();
+    const subscriptions = extensionContext.subscriptions;
+    const trackerFactory: vscode.DebugAdapterTrackerFactory = {
+        createDebugAdapterTracker(session) {
+            return session.configuration.roslaunch ?
+                new RoslaunchDebugAdapterTracker(session.configuration.roslaunch) : undefined;
+        },
+    };
+
+    subscriptions.push(vscode.debug.registerDebugConfigurationProvider("roslaunch", roslaunchDebugProvider));
+    subscriptions.push(vscode.debug.registerDebugAdapterTrackerFactory("*", trackerFactory));
+}
+
 export function deactivate() {
     // Extension unloaded
 }
