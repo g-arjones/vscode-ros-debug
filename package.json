@@ -45,6 +45,18 @@
             {
                 "type": "roslaunch",
                 "label": "Roslaunch",
+                "configurationSnippets": [
+					{
+						"label": "ROS: roslaunch (C++)",
+						"body": {
+							"name": "roslaunch",
+							"type": "roslaunch",
+							"request": "launch",
+                            "launchFile": "^\"\\${workspaceFolder}/launch/node.launch\"",
+                            "node": "/namespace/node_name"
+						}
+                    }
+                ],
                 "configurationAttributes": {
                     "launch": {
                         "required": [

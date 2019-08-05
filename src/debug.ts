@@ -7,6 +7,16 @@ import { IArguments, NodeArguments } from "./nodeArguments";
 export class RoslaunchConfigurationProvider implements DebugConfigurationProvider {
     constructor(private _outputChannel: OutputChannel) {
     }
+    public provideDebugConfigurations?(folder: WorkspaceFolder | undefined,
+                                       token?: CancellationToken): ProviderResult<DebugConfiguration[]> {
+        return [{
+            launchFile: "${workspaceFolder}/launch/node.launch",
+            name: "roslaunch",
+            node: "/namespace/node_name",
+            request: "launch",
+            type: "roslaunch",
+        }];
+    }
     public async resolveDebugConfiguration(folder: WorkspaceFolder | undefined,
                                            config: DebugConfiguration,
                                            token: CancellationToken | undefined):
