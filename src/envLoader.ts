@@ -27,12 +27,7 @@ function findWorkspaceSetupFile(rootPath: string): string {
     return path.join(findWorkspaceRoot(rootPath), "devel", workspaceSetupFile());
 }
 
-export interface IEnvLoader {
-    env(): Promise<any>;
-    reload(): Promise<any>;
-}
-
-export class EnvLoader implements IEnvLoader {
+export class EnvLoader {
     private _cachedEnv: any;
     constructor(private _workspaceFolder: string) {
         this.reload();
