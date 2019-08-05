@@ -9,11 +9,14 @@ export class RoslaunchConfigurationProvider implements DebugConfigurationProvide
                                            config: DebugConfiguration,
                                            token: CancellationToken | undefined):
                                                 Promise<ProviderResult<DebugConfiguration>> {
-        // TODO: expland stuff like ${workspaceFolder}
         // TODO: Print NodeArgument's stderr to an output channel
         // TODO: Interactively populate config
+        const expandableVars = {
+            workspaceFolder: folder ? folder!.uri.fsPath : "",
+        };
+
         const env = await new EnvLoader(folder!.uri.path).env();
-        const launchFile: string = (config as any).launchFile;
+        const launchFile: string = this.expandVariables((config as any).launchFile, expandableVars);
         const node: string = (config as any).node;
         const nodeArgs = await new NodeArguments(env, launchFile, node).args();
         const launcher = path.join(__dirname, "..", "..", "helpers", "launch.py");
@@ -29,5 +32,15 @@ export class RoslaunchConfigurationProvider implements DebugConfigurationProvide
             env,
         };
         return config;
+    }
+    public expandVariables(value: string, vars: any): string {
+        return value.replace(/\${\w+}/g, (match) => {
+            const mode = match.substring(2, match.length - 1);
+            if (vars[mode]) {
+                return vars[mode];
+            } else {
+                throw new Error(`Unsupported variable expansion: ${match}`);
+            }
+        });
     }
 }
