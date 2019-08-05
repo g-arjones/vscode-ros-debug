@@ -1,32 +1,18 @@
 "use strict";
 import * as vscode from "vscode";
+import { RoslaunchDebugAdapterTracker } from "./adapterTracker";
 import * as debug from "./debug";
-
-class RoslaunchDebugAdapterTracker implements vscode.DebugAdapterTracker {
-    private _terminal: vscode.Terminal;
-    constructor(private _config: { cmd: string, env: any }) {
-        // no-op
-    }
-    public onWillStartSession(): void {
-        this._terminal = vscode.window.createTerminal({
-            env: this._config.env,
-            name: "roslaunch",
-        });
-        this._terminal.sendText(this._config.cmd);
-    }
-    public onWillStopSession(): void {
-        this._terminal.dispose();
-    }
-}
+import * as wrappers from "./wrappers";
 
 export function activate(extensionContext: vscode.ExtensionContext) {
     const outputChannel = vscode.window.createOutputChannel("ROS (debug)");
     const roslaunchDebugProvider = new debug.RoslaunchConfigurationProvider(outputChannel);
     const subscriptions = extensionContext.subscriptions;
+    const codeWrapper = new wrappers.VSCode(extensionContext);
     const trackerFactory: vscode.DebugAdapterTrackerFactory = {
         createDebugAdapterTracker(session) {
             return session.configuration.roslaunch ?
-                new RoslaunchDebugAdapterTracker(session.configuration.roslaunch) : undefined;
+                new RoslaunchDebugAdapterTracker(session.configuration.roslaunch, codeWrapper) : undefined;
         },
     };
     subscriptions.push(outputChannel);

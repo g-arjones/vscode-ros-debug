@@ -78,6 +78,10 @@ export class VSCode {
         return vscode.window.createOutputChannel(name);
     }
 
+    public createTerminal(options: vscode.TerminalOptions): vscode.Terminal {
+        return vscode.window.createTerminal(options);
+    }
+
     public updateWorkspaceFolders(start: number, deleteCount: number | undefined | null,
                                   ...workspaceFoldersToAdd: Array<{ name?: string, uri: vscode.Uri }>): boolean {
         return vscode.workspace.updateWorkspaceFolders(start, deleteCount, ...workspaceFoldersToAdd);
