@@ -76,6 +76,7 @@
     ],
     "linterOptions": {
         "exclude": [
+            "typings/**",
             "node_modules/**",
             "test/istanbultestrunner.ts"
         ]
