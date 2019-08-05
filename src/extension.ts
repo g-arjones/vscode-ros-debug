@@ -20,7 +20,8 @@ class RoslaunchDebugAdapterTracker implements vscode.DebugAdapterTracker {
 }
 
 export function activate(extensionContext: vscode.ExtensionContext) {
-    const roslaunchDebugProvider = new debug.RoslaunchConfigurationProvider();
+    const outputChannel = vscode.window.createOutputChannel("ROS (debug)");
+    const roslaunchDebugProvider = new debug.RoslaunchConfigurationProvider(outputChannel);
     const subscriptions = extensionContext.subscriptions;
     const trackerFactory: vscode.DebugAdapterTrackerFactory = {
         createDebugAdapterTracker(session) {
@@ -28,7 +29,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
                 new RoslaunchDebugAdapterTracker(session.configuration.roslaunch) : undefined;
         },
     };
-
+    subscriptions.push(outputChannel);
     subscriptions.push(vscode.debug.registerDebugConfigurationProvider("roslaunch", roslaunchDebugProvider));
     subscriptions.push(vscode.debug.registerDebugAdapterTrackerFactory("*", trackerFactory));
 }
