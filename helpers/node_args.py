@@ -26,7 +26,7 @@ if __name__ == '__main__':
     debug_node = None
 
     config = roslaunch.config.load_config_default([debug_launch_file], None)
-    for node in config.nodes:
+    for node in (config.nodes + config.tests):
         fullname = rosgraph.names.ns_join(node.namespace, node.name)
         if fullname == debug_node_name:
             debug_node = node

@@ -22,6 +22,7 @@ class ROSLaunchParent(object):
         self.roslaunch_files = roslaunch_files
         self.port = port
         self.exclude_node = exclude_node
+        self.is_test = False
 
         self._shutting_down = False
         self.config = self.runner = self.server = self.pm = self.remote_runner = None
@@ -37,7 +38,7 @@ class ROSLaunchParent(object):
     def _load_config(self):
         self.config = roslaunch.config.load_config_default(self.roslaunch_files, self.port)
         self._exclude_node(self.config.nodes)
-        self._exclude_node(self.config.tests)
+        self.is_test = (len(filter(lambda x: rosgraph.names.ns_join(x.namespace, x.name) == self.exclude_node, self.config.tests)) > 0)
 
     def _start_pm(self):
         self.pm = roslaunch.pmon.start_process_monitor()
@@ -127,6 +128,10 @@ class ROSLaunchParent(object):
             self.pm.registrations_complete()
 
         self.logger.info("... roslaunch parent running, waiting for process exit")
+        if not self.is_test:
+            for test in self.config.tests:
+                test.output = 'screen'
+                self.runner.run_test(test)
 
     def spin(self):
         if not self.runner:
@@ -162,4 +167,7 @@ if __name__ == '__main__':
     roslaunch.configure_logging(uuid)
     parent = ROSLaunchParent(uuid, [debug_launch_file], exclude_node=debug_node_name)
     parent.start()
-    parent.spin()
+    if parent.is_test:
+        parent.spin()
+    else:
+        parent.runner.stop()
