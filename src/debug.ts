@@ -54,7 +54,7 @@ export class RoslaunchConfigurationProvider implements DebugConfigurationProvide
             config.program = nodeArgs.args[0];
             config.args = nodeArgs.args.slice(1);
             config.roslaunch = {
-                cmd: `"${launcher}" "${launchFile}" "${config.node}"`,
+                cmd: [launcher, launchFile, config.node],
                 env,
             };
 

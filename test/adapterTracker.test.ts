@@ -1,31 +1,37 @@
+import * as assert from "assert";
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import { RoslaunchDebugAdapterTracker } from "../src/adapterTracker";
-import * as wrappers from "../src/wrappers";
 
 describe("RoslaunchDebugAdapterTracker", () => {
     let subject: RoslaunchDebugAdapterTracker;
-    let mockWrapper: TypeMoq.IMock<wrappers.VSCode>;
-    let mockTerminal: TypeMoq.IMock<vscode.Terminal>;
+    let mockOutputChannel: TypeMoq.IMock<vscode.OutputChannel>;
+    let mockSession: TypeMoq.IMock<vscode.DebugSession>;
     const config = {
-        cmd: "roslaunch upload.launch /node",
-        env: { HOME: "/home/robot" },
+        name: "roslaunch",
+        request: "launch",
+        roslaunch: {
+            cmd: ["bash", "-c", "exit 0"],
+            env: { HOME: "/home/robot" },
+        },
+        type: "roslaunch",
     };
     beforeEach(() => {
-        mockWrapper = TypeMoq.Mock.ofType<wrappers.VSCode>();
-        mockTerminal = TypeMoq.Mock.ofType<vscode.Terminal>();
+        mockOutputChannel = TypeMoq.Mock.ofType();
+        mockSession = TypeMoq.Mock.ofType();
+        mockSession.setup((x) => x.configuration).returns(() => config);
 
-        subject = new RoslaunchDebugAdapterTracker(config, mockWrapper.object);
-        mockWrapper.setup((x) => x.createTerminal(TypeMoq.It.isAny())).returns(() => mockTerminal.object);
+        subject = new RoslaunchDebugAdapterTracker(mockSession.object, mockOutputChannel.object);
     });
-    it("creates terminal and runs roslaunch", () => {
+    it("terminates debug session", async () => {
         subject.onWillStartSession();
-        mockWrapper.verify((x) => x.createTerminal({ name: "roslaunch", env: config.env }), TypeMoq.Times.once());
-        mockTerminal.verify((x) => x.sendText(config.cmd), TypeMoq.Times.once());
+        assert.equal(await subject.exitCode, 0);
+        mockSession.verify((x) => x.customRequest("disconnect", { terminateDebuggee: true }), TypeMoq.Times.once());
     });
-    it("disposes terminal", () => {
+    it("terminates roslaunch", async () => {
+        config.roslaunch.cmd = ["bash", "-c", "sleep 120"];
         subject.onWillStartSession();
         subject.onWillStopSession();
-        mockTerminal.verify((x) => x.dispose(), TypeMoq.Times.once());
+        assert.equal(await subject.exitCode, null);
     });
 });
