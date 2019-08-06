@@ -4,37 +4,27 @@ import * as helpers from "./helpers";
 
 describe("NodeArguments", () => {
     let subject: NodeArguments;
+    const firstArg = "-c";
+    const secondArg = "echo \"{ \\\"error\\\": \\\"test\\\", \\\"env\\\": \\\"foo\\\", \\\"args\\\": [\\\"bar\\\"] }\"";
     beforeEach(() => {
-        subject = new NodeArguments(process.env, "upload.launch", "/test_node");
-        (subject as any)._helper = [
-            "bash",
-            "-c",
-            "echo \"{ \\\"error\\\": \\\"test\\\", \\\"env\\\": \\\"foo\\\", \\\"args\\\": [\\\"bar\\\"] }\"",
-        ];
+        subject = new NodeArguments();
+        (subject as any)._helper = "bash";
     });
-    describe("args()", () => {
+    describe("load()", () => {
         it("returns the parsed node arguments", async () => {
-            const args = await subject.args();
+            const args = await subject.load(process.env, firstArg, secondArg);
             assert.equal("test", args.error);
             assert.equal("foo", args.env);
             assert.deepEqual(["bar"], args.args);
         });
         it("returns the helper's stderr", async () => {
-            (subject as any)._helper = [
-                "bash",
-                "-c",
-                "echo test >&2; echo foo; echo bar >&2; echo test2; exit 1",
-            ];
-            await helpers.assertThrowsAsync(subject.args(), /Could not parse node arguments/);
-            assert.equal("test\nbar\n", subject.stderr());
+            await helpers.assertThrowsAsync(subject.load(process.env, firstArg,
+                "echo test >&2; echo foo; echo bar >&2; echo test2; exit 1"), /Could not parse node arguments/);
+            assert.equal("test\nbar\n", subject.lastError());
         });
         it("throws if helper output is invalid", async () => {
-            (subject as any)._helper = [
-                "bash",
-                "-c",
-                "echo test",
-            ];
-            await helpers.assertThrowsAsync(subject.args(), /Internal error/);
+            await helpers.assertThrowsAsync(subject.load(process.env, firstArg,
+                "echo test"), /Internal error/);
         });
     });
 });

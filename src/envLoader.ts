@@ -28,18 +28,9 @@ function findWorkspaceSetupFile(rootPath: string): string {
 }
 
 export class EnvLoader {
-    private _cachedEnv: any;
-    constructor(private _workspaceFolder: string) {
-        this.reload();
-    }
-
-    public env(): Promise<any> {
-        return this._cachedEnv;
-    }
-
-    public reload(addedEnv?: any): Promise<any> {
-        this._cachedEnv = new Promise((resolve, reject) => {
-            const filename = findWorkspaceSetupFile(this._workspaceFolder);
+    public load(workspaceFolder: string, addedEnv?: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const filename = findWorkspaceSetupFile(workspaceFolder);
             let exportEnvCommand: string;
             if (process.platform === "win32") {
                 exportEnvCommand = `cmd /c "\"${filename}\" && set"`;
@@ -48,7 +39,7 @@ export class EnvLoader {
             }
 
             const processOptions: child_process.ExecOptions = {
-                cwd: this._workspaceFolder,
+                cwd: workspaceFolder,
                 env: addedEnv,
             };
             child_process.exec(exportEnvCommand, processOptions, (error, stdout, _stderr) => {
@@ -67,6 +58,5 @@ export class EnvLoader {
                 }
             });
         });
-        return this._cachedEnv;
     }
 }

@@ -2,10 +2,14 @@
 import * as vscode from "vscode";
 import { RoslaunchDebugAdapterTracker } from "./adapterTracker";
 import * as debug from "./debug";
+import { EnvLoader } from "./envLoader";
+import { NodeArguments } from "./nodeArguments";
 
 export function activate(extensionContext: vscode.ExtensionContext) {
+    const envLoader = new EnvLoader();
+    const nodeArguments = new NodeArguments();
     const outputChannel = vscode.window.createOutputChannel("ROS (debug)");
-    const roslaunchDebugProvider = new debug.RoslaunchConfigurationProvider(outputChannel);
+    const roslaunchDebugProvider = new debug.RoslaunchConfigurationProvider(envLoader, nodeArguments, outputChannel);
     const subscriptions = extensionContext.subscriptions;
     const trackerFactory: vscode.DebugAdapterTrackerFactory = {
         createDebugAdapterTracker(session) {

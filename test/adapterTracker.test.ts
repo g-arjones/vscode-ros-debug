@@ -24,6 +24,7 @@ describe("RoslaunchDebugAdapterTracker", () => {
         subject = new RoslaunchDebugAdapterTracker(mockSession.object, mockOutputChannel.object);
     });
     it("terminates debug session", async () => {
+        config.roslaunch.cmd = ["bash", "-c", "exit 0"];
         subject.onWillStartSession();
         assert.equal(await subject.exitCode, 0);
         mockSession.verify((x) => x.customRequest("disconnect", { terminateDebuggee: true }), TypeMoq.Times.once());
@@ -33,5 +34,11 @@ describe("RoslaunchDebugAdapterTracker", () => {
         subject.onWillStartSession();
         subject.onWillStopSession();
         assert.equal(await subject.exitCode, null);
+    });
+    it("does not terminate roslaunch twice", async () => {
+        config.roslaunch.cmd = ["bash", "-c", "exit 0"];
+        subject.onWillStartSession();
+        assert.equal(await subject.exitCode, 0);
+        subject.onWillStopSession();
     });
 });

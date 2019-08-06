@@ -2,46 +2,33 @@ import * as child_process from "child_process";
 import * as path from "path";
 
 export interface IArguments {
-    error: string;
-    args: string[];
-    env: any;
+    error: string | null | undefined;
+    args: string[] | null | undefined;
+    env: any | null | undefined;
 }
 
 export class NodeArguments {
-    private _cachedArgs: any;
-    private _stderr: string;
-    private _helper: string[];
-
-    constructor(private _parentEnv: any, launchFile: string, nodeName: string) {
-        this._stderr = "";
-        this._helper = [
-            path.join(__dirname, "..", "..", "helpers", "node_args.py"),
-            launchFile,
-            nodeName,
-        ];
+    private _helper: string;
+    private _lastError: string;
+    constructor() {
+        this._lastError = "";
+        this._helper = path.join(__dirname, "..", "..", "helpers", "node_args.py");
     }
-
-    public stderr(): string {
-        return this._stderr;
+    public lastError(): string {
+        return this._lastError;
     }
-
-    public args(): Promise<IArguments> {
-        if (!this._cachedArgs) { this.reload(); }
-        return this._cachedArgs;
-    }
-
-    public reload(): Promise<IArguments> {
-        this._stderr = "";
-        this._cachedArgs = new Promise((resolve, reject) => {
+    public load(parentEnv: any, launchFile: string, nodeName: string): Promise<IArguments> {
+        this._lastError = "";
+        return new Promise((resolve, reject) => {
             let stdout = "";
             const processOptions: child_process.SpawnOptions = {
-                env: this._parentEnv,
+                env: parentEnv,
             };
 
-            const proc = child_process.spawn(this._helper[0], this._helper.slice(1), processOptions);
+            const proc = child_process.spawn(this._helper, [launchFile, nodeName], processOptions);
             proc.stdout.setEncoding("utf8");
             proc.stderr.setEncoding("utf8");
-            proc.stderr.on("data", (chunk: string) => this._stderr += chunk);
+            proc.stderr.on("data", (chunk: string) => this._lastError += chunk);
             proc.stdout.on("data", (chunk: string) => stdout += chunk);
             proc.on("exit", (code: number, signal: string) => {
                 if (code === 0) {
@@ -55,6 +42,5 @@ export class NodeArguments {
                 }
             });
         });
-        return this._cachedArgs;
     }
 }

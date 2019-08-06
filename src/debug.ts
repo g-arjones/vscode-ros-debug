@@ -5,7 +5,11 @@ import { EnvLoader } from "./envLoader";
 import { IArguments, NodeArguments } from "./nodeArguments";
 
 export class RoslaunchConfigurationProvider implements DebugConfigurationProvider {
-    constructor(private _outputChannel: OutputChannel) {
+    private _launcher = path.join(__dirname, "..", "..", "helpers", "launch.py");
+    private _debugger = path.join(__dirname, "..", "..", "helpers", "debugger");
+    constructor(private _envLoader: EnvLoader,
+                private _nodeArguments: NodeArguments,
+                private _outputChannel: OutputChannel) {
     }
     public provideDebugConfigurations(folder: WorkspaceFolder | undefined,
                                       token?: CancellationToken): ProviderResult<DebugConfiguration[]> {
@@ -25,20 +29,18 @@ export class RoslaunchConfigurationProvider implements DebugConfigurationProvide
             workspaceFolder: folder ? folder!.uri.fsPath : "",
         };
 
-        const env = await new EnvLoader(folder!.uri.path).env();
+        const env = await this._envLoader.load(folder!.uri.path);
         const launchFile: string = this.expandVariables(config.launchFile, expandableVars);
-        const launcher = path.join(__dirname, "..", "..", "helpers", "launch.py");
-        const nodeArgsLoader = new NodeArguments(env, launchFile, config.node);
-
         try {
-            const nodeArgs = await nodeArgsLoader.args();
+            const nodeArgs = await this._nodeArguments.load(env, launchFile, config.node);
 
             if (nodeArgs.error) { throw new Error(nodeArgs.error); }
             if (!config.MIMode) { config.MIMode = "gdb"; }
             if (!config.environment) { config.environment = []; }
+            if (!config.cwd) { config.cwd = "${workspaceFolder}"; }
 
             const debuggerPath = config.miDebuggerPath || config.MIMode;
-            config.miDebuggerPath = path.join(__dirname, "..", "..", "helpers", "debugger");
+            config.miDebuggerPath = this._debugger;
             config.environment = config.environment.concat([
                 { name: "VSCODE_ROS_DEBUG_DEBUGGER", value: debuggerPath },
             ]);
@@ -51,16 +53,16 @@ export class RoslaunchConfigurationProvider implements DebugConfigurationProvide
             }
 
             config.type = "cppdbg";
-            config.program = nodeArgs.args[0];
-            config.args = nodeArgs.args.slice(1);
+            config.program = nodeArgs.args![0];
+            config.args = nodeArgs.args!.slice(1);
             config.roslaunch = {
-                cmd: [launcher, launchFile, config.node],
+                cmd: [this._launcher, launchFile, config.node],
                 env,
             };
 
             return config;
         } catch (e) {
-            const errMsg = nodeArgsLoader.stderr();
+            const errMsg = this._nodeArguments.lastError();
             if (errMsg.length > 0) {
                 this._outputChannel.append(errMsg);
                 this._outputChannel.show();
